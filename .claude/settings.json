@@ -1,0 +1,51 @@
+{
+  "permissions": {
+    "allow": [
+      "Skill(update-config)",
+      "Skill(update-config:*)",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(npx shadcn@latest add accordion)",
+      "Bash(npx shadcn@latest add radio-group)",
+      "Bash(npx shadcn@latest add tabs)",
+      "Bash(npx shadcn@latest add switch)",
+      "Bash(npx shadcn@latest add slider)",
+      "Bash(npx shadcn@latest add breadcrumb)",
+      "Bash(npx shadcn@latest add aspect-ratio)",
+      "Bash(npx shadcn@latest add progress)",
+      "Bash(git -C \"e:/my-pj/learn-python/E-commerce-platforms/Front-end/ecommerce-next\" log --oneline -10)",
+      "Bash(npx vitest *)",
+      "Bash(npm run *)",
+      "Bash(python -c \"import sys,json; d=json.load\\(sys.stdin\\); deps={**d.get\\('dependencies',{}\\),**d.get\\('devDependencies',{}\\)}; print\\('sonner:', deps.get\\('sonner','NOT FOUND'\\)\\); print\\('eslint-plugin-jest:', deps.get\\('eslint-plugin-jest','NOT FOUND'\\)\\); print\\('jest:', deps.get\\('jest','NOT FOUND'\\)\\); print\\('vitest:', deps.get\\('vitest','NOT FOUND'\\)\\)\")",
+      "Bash(node -e \"const p = require\\('./node_modules/eslint-plugin-jest/package.json'\\); console.log\\('eslint-plugin-jest version:', p.version\\); const peer = p.peerDependencies; console.log\\('peerDeps:', JSON.stringify\\(peer,null,2\\)\\)\")",
+      "Bash(node -e ' *)",
+      "Bash(python -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\(json.dumps\\(d.get\\('home', {}\\), indent=2, ensure_ascii=False\\)\\)\")",
+      "Bash(grep -c \"\\\\\\\\\\\\\\\\\" docs/docs-mvp/skills-mapping.md)",
+      "Bash(python3 -c \"import os; doc='.skills/antigravity-awesome-skills/skills'; base='docs/docs-mvp'; print\\(os.path.relpath\\(doc, base\\)\\)\")",
+      "Read(//c/Users/thanh/.claude/plugins/cache/claude-plugins-official/superpowers/5.0.7/skills/**)",
+      "Bash(npx tsc *)",
+      "Bash(node -e \"const l = require\\('E:/my-pj/learn-python/E-commerce-platforms/Front-end/ecommerce-next/node_modules/lucide-react'\\); console.log\\(Object.keys\\(l\\).filter\\(k => k.toLowerCase\\(\\).includes\\('headphone'\\)\\)\\)\")",
+      "Bash(node -e \"const l = require\\('E:/my-pj/learn-python/E-commerce-platforms/Front-end/ecommerce-next/node_modules/lucide-react'\\); const keys = Object.keys\\(l\\).filter\\(k => k.toLowerCase\\(\\).includes\\('headphone'\\)\\); console.log\\(keys\\);\")",
+      "Bash(node -e \"const l = require\\('E:/my-pj/learn-python/E-commerce-platforms/Front-end/ecommerce-next/node_modules/lucide-react'\\); const keys = Object.keys\\(l\\).filter\\(k => k.toLowerCase\\(\\).includes\\('truck'\\) || k.toLowerCase\\(\\).includes\\('rotateccw'\\) || k.toLowerCase\\(\\).includes\\('shieldcheck'\\)\\); console.log\\(keys\\);\")",
+      "Bash(node -e \"const l = require\\('E:/my-pj/learn-python/E-commerce-platforms/Front-end/ecommerce-next/node_modules/lucide-react'\\); console.log\\(typeof l.HeadphonesIcon\\);\")",
+      "Bash(git reset *)",
+      "Bash(git -C \"e:/my-pj/learn-python/E-commerce-platforms/Front-end/ecommerce-next\" rev-parse HEAD)",
+      "Bash(git -C \"e:/my-pj/learn-python/E-commerce-platforms/Front-end/ecommerce-next\" diff faa894bbd6917d1ed2d22d8c48f00f5610c5dc2a..HEAD --name-only)",
+      "Bash(git -C \"e:/my-pj/learn-python/E-commerce-platforms/Front-end/ecommerce-next\" diff faa894bd..HEAD --name-only)",
+      "Bash(git -C \"e:\\\\my-pj\\\\learn-python\\\\E-commerce-platforms\\\\Front-end\\\\ecommerce-next\" log --oneline -10)",
+      "Bash(python docs-mvp/find_skills.py)",
+      "Bash(python -c \"import sys; sys.stdout.reconfigure\\(encoding='utf-8'\\)\")",
+      "Bash(python -X utf8 docs-mvp/find_skills.py)",
+      "Bash(python docs-mvp/find_skills.py --lang en)",
+      "Bash(python docs-mvp/find_skills.py --lang vi)",
+      "Read(//c/Users/thanh/.claude/plugins/cache/claude-plugins-official/superpowers/5.0.7/scripts/**)",
+      "Read(//c/Users/thanh/.claude/plugins/**)",
+      "Bash(bash \"C:/Users/thanh/.claude/plugins/cache/claude-plugins-official/superpowers/5.0.7/skills/brainstorming/scripts/start-server.sh\" --project-dir \"e:/my-pj/learn-python/E-commerce-platforms/Front-end/ecommerce-next\")"
+    ],
+    "additionalDirectories": [
+      "e:\\my-pj\\learn-python\\E-commerce-platforms\\Front-end\\ecommerce-next\\src\\app\\[locale]\\(shop)",
+      "E:\\my-pj\\learn-python\\E-commerce-platforms\\Front-end\\ecommerce-next\\docs",
+      "e:\\my-pj\\learn-python\\E-commerce-platforms\\Front-end\\ecommerce-next\\docs\\superpowers"
+    ]
+  }
+}
