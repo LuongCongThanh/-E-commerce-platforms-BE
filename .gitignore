@@ -1,5 +1,15 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
+# python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.python-version
+.venv/
+venv/
+env/
+
 # dependencies
 /node_modules
 /.pnp
@@ -12,6 +22,10 @@
 
 # testing
 /coverage
+.coverage
+.coverage.*
+htmlcov/
+.pytest_cache/
 
 # next.js
 /.next/
@@ -21,6 +35,7 @@
 
 # production
 /build
+dist/
 
 # misc
 .DS_Store
@@ -28,6 +43,9 @@
 .skills/*
 .claude/skills/*
 .agent/
+.ruff_cache/
+.mypy_cache/
+.pre-commit-cache/
 
 # debug
 npm-debug.log*
