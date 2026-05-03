@@ -1,7 +1,7 @@
 # 04. Project Structure, Guidelines & Conventions — Backend (VI)
 
-Last updated: 2026-04-25
-Source of truth: Django project structure, architecture decisions in this doc set, BE standards
+Last updated: 2026-05-04
+Source of truth: current repo structure, `config/settings/base.py`, `config/urls.py`, `pyproject.toml`, architecture decisions in this doc set
 Owner: BE Lead + Architect Reviewer
 
 ## TOC
@@ -17,8 +17,8 @@ Owner: BE Lead + Architect Reviewer
 
 | Item               | Standard                                                      |
 | ------------------ | ------------------------------------------------------------- |
-| Architecture style | Django app-based modular, DRF ViewSets + Serializers          |
-| Settings strategy  | `settings/base.py` + `development.py` + `production.py`       |
+| Architecture style | Django app-based modular, DRF APIView/serializers + services  |
+| Settings strategy  | `config/settings/base.py` + `config/settings/local.py`        |
 | DB access pattern  | ORM-first, raw SQL chỉ khi cần tối ưu rõ ràng                 |
 | Convention policy  | Naming, imports, typing, testing, migration, commit standards |
 
@@ -45,9 +45,10 @@ Không bao gồm:
 ## Decisions
 
 - Mỗi Django app chứa một domain nghiệp vụ rõ ràng — không mix concerns.
-- Settings phân tầng: `base.py` → `development.py` / `production.py`.
-- Không hardcode secret — tất cả qua biến môi trường (`python-decouple`).
-- Mỗi ViewSet/View chứa routing logic, không chứa business logic nặng — đẩy xuống service layer.
+- Settings hiện tại tách theo `base.py` + `local.py`; nếu thêm `production.py` sau này thì phải cập nhật lại doc này.
+- Dependency/config source hiện tại dùng `django-environ` + `.env`.
+- API code ưu tiên tách dưới `apps/<domain>/api/` thay vì nhồi toàn bộ serializer/view vào root app.
+- View/APIView chỉ chứa routing, authz, orchestration nhẹ; business logic nặng đẩy xuống service layer.
 - Convention là bắt buộc để merge.
 
 ## Detailed Spec
@@ -55,75 +56,51 @@ Không bao gồm:
 ### Target project tree
 
 ```text
-backend/
+repo-root/
+  apps/
+    accounts/
+      api/
+        serializers.py
+        urls.py
+        views.py
+      models.py
+      urls.py
+    catalog/
+      api/
+        serializers.py
+        urls.py
+        views.py
+      management/commands/
+        seed_db.py
+      models.py
+      urls.py
+    orders/
+      api/
+        admin_urls.py
+        serializers.py
+        urls.py
+        views.py
+      exceptions.py
+      models.py
+      services.py
+      urls.py
+    core/
+      exceptions.py
+      models.py
   config/
-    __init__.py
     settings/
       __init__.py
-      base.py          # Shared settings
-      development.py   # Local dev overrides
-      production.py    # Production overrides
-    urls.py            # Root URL config
+      base.py
+      local.py
+    urls.py
     wsgi.py
-    asgi.py
-  apps/
-    accounts/          # User auth, profile, address
-      migrations/
-      admin.py
-      apps.py
-      models.py
-      serializers.py
-      views.py
-      urls.py
-      services.py      # Business logic tách ra view
-      tests/
-        test_models.py
-        test_views.py
-        factories.py
-    catalog/           # Product, Category, Variant, Image
-      migrations/
-      admin.py
-      apps.py
-      models.py
-      serializers.py
-      views.py
-      urls.py
-      filters.py       # django-filter FilterSet
-      services.py
-      tests/
-    orders/            # Order, OrderItem, ShippingAddress
-      migrations/
-      admin.py
-      apps.py
-      models.py
-      serializers.py
-      views.py
-      urls.py
-      services.py      # Atomic order creation, stock deduction
-      email.py         # Email notification logic
-      tests/
-    core/              # Shared utilities
-      models.py        # TimeStampedModel, SoftDeleteModel
-      pagination.py    # StandardResultsSetPagination
-      permissions.py   # IsOwnerOrAdmin, IsAdminUser custom
-      exceptions.py    # Custom exception handler → standard error shape
-      serializers.py   # Base serializer mixins
-      views.py         # Health check view
-  requirements/
-    base.txt
-    development.txt
-    production.txt
-  templates/
-    emails/
-      order_confirmation.html
-      password_reset.html
+  docs/
+  tests/
   manage.py
   Dockerfile
   docker-compose.yml
-  docker-compose.prod.yml
-  .env.example
-  pyproject.toml       # ruff + black + isort config
-  pytest.ini           # pytest config
+  pyproject.toml
+  uv.lock
 ```
 
 ### Architecture rules
@@ -132,13 +109,14 @@ backend/
   - `apps/accounts`: User model (extend AbstractUser), auth API, profile, address.
   - `apps/catalog`: Product, Category, ProductVariant, ProductImage, search, filter.
   - `apps/orders`: Order, OrderItem, ShippingAddress, order workflow, email trigger.
-  - `apps/core`: Shared models (TimeStampedModel), pagination, permissions, exceptions.
+  - `apps/core`: Shared models/exceptions và các utility thực sự được nhiều app dùng chung.
 - Layering trong mỗi app:
-  - `views.py` / `ViewSet`: Nhận request, gọi serializer, gọi service, trả response.
-  - `serializers.py`: Validation input + shape output. Không chứa business logic.
-  - `services.py`: Business logic, database transaction, gửi email. Test độc lập.
+  - `api/views.py`: Nhận request, gọi serializer/service, trả response.
+  - `api/serializers.py`: Validation input + shape output. Không chứa business logic.
+  - `api/urls.py`: Route public API của domain.
+  - `services.py`: Business logic, database transaction, state transition quan trọng.
   - `models.py`: Database schema, model methods thuần túy, không gọi external service.
-  - `admin.py`: Admin registration, display, actions.
+  - `api/admin_urls.py`: Chỉ dùng khi có admin API tách riêng khỏi Django Admin UI.
 - Shared boundary:
   - `apps/core` chỉ chứa thứ dùng chung ít nhất 2 app.
   - Cấm app import lẫn nhau ngoài `apps/core` — nếu cần cross-app logic, tách sang service riêng.
@@ -147,41 +125,39 @@ backend/
 
 ```python
 # config/settings/base.py
-SECRET_KEY = config('SECRET_KEY')
-DEBUG = config('DEBUG', default=False, cast=bool)
+SECRET_KEY = env("SECRET_KEY")
+DEBUG = env("DEBUG")
 DATABASES = {
-    'default': config('DATABASE_URL', cast=db_url)
+    "default": env.db(),
 }
 
 # JWT settings
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=15),
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
-    'ROTATE_REFRESH_TOKENS': True,
-    'BLACKLIST_AFTER_ROTATION': True,
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=60),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
+    "ROTATE_REFRESH_TOKENS": True,
+    "AUTH_HEADER_TYPES": ("Bearer",),
 }
 
 # DRF settings
 REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    "DEFAULT_PERMISSION_CLASSES": [
+        "rest_framework.permissions.IsAuthenticatedOrReadOnly",
     ],
-    'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.IsAuthenticated',
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
     ],
-    'DEFAULT_THROTTLE_CLASSES': [
-        'rest_framework.throttling.AnonRateThrottle',
-        'rest_framework.throttling.UserRateThrottle',
-    ],
-    'DEFAULT_THROTTLE_RATES': {
-        'anon': '100/day',
-        'user': '1000/day',
-    },
-    'DEFAULT_PAGINATION_CLASS': 'apps.core.pagination.StandardResultsSetPagination',
-    'PAGE_SIZE': 20,
-    'EXCEPTION_HANDLER': 'apps.core.exceptions.custom_exception_handler',
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+    "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
+    "PAGE_SIZE": 20,
+    "EXCEPTION_HANDLER": "apps.core.exceptions.custom_exception_handler",
 }
 ```
+
+Ghi chú:
+
+- Các snippet trên phản ánh repo hiện tại, không phải target state giả định.
+- Những thứ như throttling chi tiết, custom pagination class, hay `production.py` chỉ nên thêm vào doc khi đã tồn tại thật trong codebase.
 
 ### Coding guidelines
 
@@ -192,7 +168,7 @@ REST_FRAMEWORK = {
   - Constants: `UPPER_SNAKE_CASE`.
   - URL pattern: `kebab-case` (e.g., `/api/products/best-sellers/`).
   - Model field: `snake_case`.
-- Imports order (isort/ruff enforce):
+- Imports order (theo quy ước code style; hiện repo dùng `ruff` và `black` trong `pyproject.toml`):
   1. Standard library.
   2. Third-party.
   3. Django.
@@ -272,27 +248,19 @@ class OrderService:
     @transaction.atomic
     def create_order(user, validated_data: dict) -> Order:
         """
-        Atomic order creation với stock deduction.
-        Raises ValidationError nếu stock không đủ.
+        Tạo order ở PENDING.
+        Không deduct stock tại bước này.
         """
-        items_data = validated_data.pop('items')
-        order = Order.objects.create(user=user, **validated_data)
-
-        for item_data in items_data:
-            variant = ProductVariant.objects.select_for_update().get(
-                pk=item_data['variant_id']
-            )
-            if variant.stock_quantity < item_data['quantity']:
-                raise ValidationError(
-                    {'variant_id': f'Sản phẩm "{variant}" vừa hết hàng'}
-                )
-            variant.stock_quantity -= item_data['quantity']
-            variant.save(update_fields=['stock_quantity'])
-            OrderItem.objects.create(order=order, variant=variant, **item_data)
-
-        OrderEmailService.send_confirmation(order)
+        # Validate input, snapshot line-item data, create Order + OrderItems.
+        # Inventory commit xảy ra ở bước confirm riêng.
         return order
 ```
+
+Quy tắc canonical của repo:
+
+- `POST /api/orders/` chỉ tạo order ở `PENDING`.
+- Tồn kho chỉ bị trừ khi order chuyển sang `CONFIRMED`.
+- `select_for_update()` là bắt buộc ở bước confirm/cancel có tác động tồn kho.
 
 ### Migration conventions
 
@@ -308,20 +276,28 @@ class OrderService:
 ```python
 # config/urls.py
 urlpatterns = [
-    path('', include('apps.core.urls')),          # health check
-    path('api/auth/', include('apps.accounts.urls')),
-    path('api/', include('apps.catalog.urls')),
-    path('api/', include('apps.orders.urls')),
-    path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
-    path('api/docs/', SpectacularSwaggerView.as_view(), name='swagger-ui'),
-    path('secret-panel/', admin.site.urls),        # Đổi từ /admin/
+    path("secret-panel/", admin.site.urls),
+    path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
+    path("api/docs/", SpectacularSwaggerView.as_view(url_name="schema"), name="swagger-ui"),
+    path("api/auth/", include("apps.accounts.urls")),
+    path("api/", include("apps.catalog.urls")),
+    path("api/orders/", include("apps.orders.urls")),
+    path("api/admin/orders/", include("apps.orders.api.admin_urls")),
 ]
 
-# apps/catalog/urls.py
-router = DefaultRouter()
-router.register(r'products', ProductViewSet, basename='product')
-router.register(r'categories', CategoryViewSet, basename='category')
+# apps/accounts/api/urls.py
+urlpatterns = [
+    path("register/", RegisterView.as_view(), name="auth_register"),
+    path("login/", LoginView.as_view(), name="token_obtain_pair"),
+    path("token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
+]
 ```
+
+Ghi chú:
+
+- Repo hiện tại chưa có `apps.core.urls` hay health endpoint trong `config/urls.py`.
+- Catalog được mount dưới `api/`, còn orders được mount dưới `api/orders/`.
+- Admin order actions có namespace route riêng: `api/admin/orders/...`.
 
 ### Testing conventions
 
@@ -345,10 +321,15 @@ router.register(r'categories', CategoryViewSet, basename='category')
 - Coverage target: ≥ 80% cho `apps/` directory.
 - Pytest marks: `@pytest.mark.django_db`, `@pytest.mark.slow` cho test chậm.
 
+Ghi chú thực tế:
+
+- Test layout ở trên là target convention tốt, nhưng chưa phải toàn bộ cấu trúc đã tồn tại sẵn trong repo hiện tại.
+- Không được viết như thể `pytest.ini`, `factories.py`, hay full test tree đã có nếu repo chưa chứa chúng.
+
 ### Commit và PR conventions
 
 - Commit format theo conventional commits:
-  - `feat(orders): add atomic stock deduction in order creation`
+  - `feat(orders): add admin confirm flow for inventory commit`
   - `fix(auth): fix refresh token rotation not blacklisting old token`
   - `test(catalog): add product list API tests`
   - `chore(deps): upgrade django to 5.1.2`
@@ -366,34 +347,17 @@ router.register(r'categories', CategoryViewSet, basename='category')
 SECRET_KEY=your-secret-key-here
 DEBUG=True
 DATABASE_URL=postgres://user:pass@localhost:5433/ecommerce
-ALLOWED_HOSTS=localhost,127.0.0.1
-
-# JWT
-JWT_ACCESS_TOKEN_LIFETIME_MINUTES=15
-JWT_REFRESH_TOKEN_LIFETIME_DAYS=7
-
-# Cloudinary
-CLOUDINARY_CLOUD_NAME=your-cloud-name
-CLOUDINARY_API_KEY=your-api-key
-CLOUDINARY_API_SECRET=your-api-secret
-
-# Email
-EMAIL_HOST=smtp.gmail.com
-EMAIL_PORT=587
-EMAIL_HOST_USER=your@gmail.com
-EMAIL_HOST_PASSWORD=your-app-password
-DEFAULT_FROM_EMAIL=noreply@yourstore.com
-
-# Sentry
-SENTRY_DSN=https://xxx@sentry.io/xxx
-
-# Frontend URL (cho CORS)
-FRONTEND_URL=http://localhost:3000
 ```
+
+Ghi chú:
+
+- Biến môi trường ở trên là baseline tối thiểu phản ánh `base.py` hiện tại.
+- Các biến cho Cloudinary, Email, Sentry, CORS whitelist nên chỉ thêm khi codebase thực sự đọc chúng.
 
 ## Acceptance Criteria
 
 - Cấu trúc project và ownership đủ rõ để implement không mơ hồ.
+- Mô tả repo không được mâu thuẫn với file/folder đang tồn tại thật.
 - Coding/migration/testing/commit conventions có thể dùng trực tiếp.
 - Service layer tách bạch với View layer.
 - Rule app boundary ngăn được coupling sai kiến trúc.
@@ -405,11 +369,13 @@ Open risks:
 - Tăng tốc giao tính năng có thể phá conventions — cần PR checklist enforce.
 - `apps/core` phình to thành "misc bucket" nếu không review kỹ.
 - N+1 query khó detect nếu không dùng `django-debug-toolbar` thường xuyên.
+- Doc này có nguy cơ drift lại nếu tiếp tục mô tả target-state chưa implement như thể đã tồn tại.
 
 Next actions:
 
 - [ ] Tạo PR template với migration checklist và API contract impact.
+- [ ] Quyết định rõ phần nào là `current state` và phần nào là `target convention` nếu tiếp tục mở rộng doc này.
 - [ ] Cài `django-debug-toolbar` và verify không có N+1 trong product list query.
-- [ ] Tạo `TimeStampedModel` base class trong `apps/core/models.py`.
-- [ ] Cấu hình `ruff` + `black` + `isort` trong `pyproject.toml`.
+- [ ] Chỉ thêm `TimeStampedModel`, health endpoint, custom pagination, throttling policy chi tiết vào doc sau khi code tương ứng tồn tại.
+- [ ] Đồng bộ ví dụ quality tools với `pyproject.toml` hiện tại; repo đang có `ruff` và `black`, chưa có cấu hình `isort` tách riêng.
 - [ ] Review định kỳ `apps/core` mỗi sprint tránh phình to.

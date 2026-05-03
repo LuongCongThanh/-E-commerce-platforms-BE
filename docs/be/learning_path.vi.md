@@ -1,5 +1,9 @@
 # 🚀 Senior Backend Engineer Learning Path (FE → BE → System)
 
+> Đây là tài liệu học tập phụ trợ để phát triển năng lực Backend.
+> Không phải tài liệu canonical cho implementation hiện tại của repo.
+> Khi có mâu thuẫn, ưu tiên `CONTEXT.md`, `docs/adr/0001-order-inventory-lifecycle.md`, và `docs/be/01-05`.
+
 Chào mừng bạn đến với lộ trình "thực chiến" để trở thành một Backend Engineer thực thụ. Với 6 năm kinh nghiệm Frontend, bạn đã có tư duy hệ thống tốt. Lộ trình này không chỉ dạy bạn "cách dùng Django", mà là **cách xây dựng hệ thống Backend chuẩn production**.
 
 ---
@@ -8,12 +12,12 @@ Chào mừng bạn đến với lộ trình "thực chiến" để trở thành 
 
 Đừng học Python như một ngôn ngữ mới, hãy học cách "map" tư duy:
 
-| Khía cạnh | Frontend Mindset | Backend Mindset |
-| :--- | :--- | :--- |
-| **Trọng tâm** | UI State & UX | **Data Integrity & Consistency** |
-| **Đơn vị** | Component | **Service / Module** |
+| Khía cạnh      | Frontend Mindset           | Backend Mindset                            |
+| :------------- | :------------------------- | :----------------------------------------- |
+| **Trọng tâm**  | UI State & UX              | **Data Integrity & Consistency**           |
+| **Đơn vị**     | Component                  | **Service / Module**                       |
 | **Thành công** | Giao diện mượt, không giật | **Dữ liệu chính xác, xử lý song song tốt** |
-| **Lỗi** | Async UI (Spinners) | **Concurrency & Deadlocks** |
+| **Lỗi**        | Async UI (Spinners)        | **Concurrency & Deadlocks**                |
 
 👉 **BE không chỉ là "trả về JSON", mà là: Data integrity + Scalability + Correctness.**
 
@@ -43,7 +47,8 @@ Chào mừng bạn đến với lộ trình "thực chiến" để trở thành 
 **Mục tiêu:** Tách biệt logic khỏi View - Chống lại "Fat Views".
 
 - **Học:** Service Layer pattern, Transactions (`@transaction.atomic`), Database Locks (`select_for_update`).
-- **Làm:** Triển khai Checkout flow (Validate stock -> Lock row -> Deduct stock -> Create order).
+- **Làm trong repo này:** Triển khai order flow theo rule đã khóa: `Create order (PENDING) -> Admin confirm -> Lock row -> Deduct stock`.
+- **Lưu ý domain:** Trong repo này, tạo order không đồng nghĩa với commit tồn kho. Tồn kho chỉ bị trừ khi `Order` chuyển sang `CONFIRMED`.
 - **⚠️ Critical:** **Concurrency > Syntax**.
 
 ## 🔴 Phase 4: Database Mastery (Week 4)
@@ -58,7 +63,8 @@ Chào mừng bạn đến với lộ trình "thực chiến" để trở thành 
 **Mục tiêu:** Tư duy hệ thống lớn.
 
 - **Học:** Stateless API, Idempotency (Tính duy nhất), Pagination strategy (Offset vs Cursor), API Versioning.
-- **Làm:** Implement `X-Idempotency-Key` cho Order API.
+- **Làm:** Tìm hiểu `X-Idempotency-Key` cho Order API như một hướng hardening nâng cao.
+- **Trong MVP hiện tại:** Không xem idempotency là phần đã khóa scope nếu canonical docs chưa yêu cầu.
 
 ## ⚙️ Phase 6: Async & Background Jobs (Week 6)
 
@@ -66,6 +72,7 @@ Chào mừng bạn đến với lộ trình "thực chiến" để trở thành 
 
 - **Học:** Celery, Redis, Message Queues.
 - **Làm:** Gửi email xác nhận đơn hàng async, xử lý ảnh sản phẩm async.
+- **Phạm vi repo hiện tại:** Đây là kiến thức Phase 2+, không phải baseline bắt buộc của MVP đang triển khai.
 
 ## 🔐 Phase 7: Security (Week 7)
 
@@ -76,16 +83,19 @@ Chào mừng bạn đến với lộ trình "thực chiến" để trở thành 
 
 - **Học:** Caching strategies (Redis), CDN cho media, Database Scaling (Read Replicas concept).
 - **Làm:** Cache danh sách sản phẩm và Category tree.
+- **Phạm vi repo hiện tại:** Chỉ nên đụng đến sau khi API contract, order lifecycle, và admin flow đã ổn định.
 
 ## 🧪 Phase 9: Testing (Thực hiện song song)
 
 - **Học:** Unit test (Services), Integration test (APIs), Factories (Factory Boy).
 - **Làm:** Chạy `pytest` cho toàn bộ luồng Order.
+- **Lưu ý thực tế:** Nếu test stack trong repo chưa cài đủ, phải kiểm tra `pyproject.toml` trước khi xem đây là checklist đã sẵn sàng chạy.
 
 ## 🏗️ Phase 10: Production & DevOps
 
 - **Học:** Docker, CI/CD (GitHub Actions), Logging (ELK/Graylog concept), Monitoring (Sentry, Prometheus).
 - **Làm:** Containerize hệ thống với Docker Compose (Postgres + Redis + Django).
+- **Phạm vi repo hiện tại:** `Redis` ở dòng trên nên hiểu là hướng mở rộng. Không mặc định xem đó là thành phần bắt buộc của MVP hiện tại.
 
 ---
 
@@ -102,5 +112,8 @@ Chào mừng bạn đến với lộ trình "thực chiến" để trở thành 
 ## 📚 Tài liệu tham khảo trong dự án
 
 1. **Roadmap chi tiết:** `docs/be/02-roadmap-and-execution-plan.vi.md`
-2. **Quy chuẩn cấu trúc:** `docs/be/04-project-structure-guidelines-conventions.vi.md`
-3. **Task thực thi:** `docs/be/05-priority-implementation-backlog.vi.md`
+2. **Scope và contract canonical:** `docs/be/01-mvp-overview.vi.md`
+3. **Quy tắc domain cốt lõi:** `CONTEXT.md`
+4. **Quyết định tồn kho theo lifecycle:** `docs/adr/0001-order-inventory-lifecycle.md`
+5. **Quy chuẩn cấu trúc:** `docs/be/04-project-structure-guidelines-conventions.vi.md` *(đọc kèm repo thực tế vì file này vẫn còn điểm cần cập nhật)*
+6. **Task thực thi:** `docs/be/05-priority-implementation-backlog.vi.md`
