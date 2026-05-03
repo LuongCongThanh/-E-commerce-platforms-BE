@@ -44,7 +44,9 @@ class Command(BaseCommand):
                 category=category,
                 defaults={
                     "slug": slugify(product_name),
-                    "description": f"Premium quality {product_name} with exceptional features.",
+                    "description": (
+                        f"Premium quality {product_name} " "with exceptional features."
+                    ),
                 },
             )
 

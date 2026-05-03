@@ -64,7 +64,7 @@ KEYWORD_DOMAIN: dict[str, list[str]] = {
     # Testing
     "tdd": ["Testing"],
     "testing": ["Testing"],
-    "debugger": ["Testing"],
+    "debugger": ["Testing", "VSCode"],
     "debugging": ["Testing"],
     "jest": ["Testing"],
     "mocha": ["Testing"],
@@ -84,7 +84,7 @@ KEYWORD_DOMAIN: dict[str, list[str]] = {
     "git": ["DevOps"],
     # Architecture / Design
     "architecture": ["Architecture"],
-    "design": ["Architecture"],
+    "design": ["Architecture", "Design"],
     "patterns": ["Architecture"],
     "frameworks": ["Architecture"],
     "software": ["Architecture"],
@@ -98,7 +98,7 @@ KEYWORD_DOMAIN: dict[str, list[str]] = {
     "document": ["Quality"],
     "documentation": ["Quality"],
     "code": ["Quality"],
-    "claude": ["Quality"],
+    "claude": ["Quality", "Claude"],
     "coding": ["Quality"],
     "quality": ["Quality"],
     "best": ["Quality"],
@@ -115,7 +115,6 @@ KEYWORD_DOMAIN: dict[str, list[str]] = {
     "performance": ["FE", "BE"],
     "optimization": ["FE", "BE"],
     # Claude / AI Tools
-    "claude": ["Claude"],
     "claude-code": ["Claude"],
     "anthropic": ["Claude"],
     "prompt": ["Claude"],
@@ -137,7 +136,6 @@ KEYWORD_DOMAIN: dict[str, list[str]] = {
     "workspace": ["VSCode"],
     "snippet": ["VSCode"],
     "keybinding": ["VSCode"],
-    "debugger": ["VSCode", "Testing"],
     "launch": ["VSCode"],
     "task": ["VSCode"],
     "devcontainer": ["VSCode"],
@@ -148,8 +146,8 @@ KEYWORD_DOMAIN: dict[str, list[str]] = {
     "plugin": ["Antigravity"],
     "superpowers": ["Antigravity"],
     # BA (Business Analysis)
-    "bussiness-analysis": ["BA"],
-    "project-management": ["BA"],
+    "bussiness-analysis": ["BA", "Management"],
+    "project-management": ["BA", "Management"],
     "business": ["BA"],
     "analysis": ["BA"],
     "analyst": ["BA"],
@@ -163,7 +161,6 @@ KEYWORD_DOMAIN: dict[str, list[str]] = {
     "kpi": ["BA"],
     "metrics": ["BA"],
     # Design (UI/UX)
-    "design": ["Design"],
     "ui": ["Design"],
     "ux": ["Design"],
     "figma": ["Design"],
@@ -176,7 +173,6 @@ KEYWORD_DOMAIN: dict[str, list[str]] = {
     "visual": ["Design"],
     "branding": ["Design"],
     "icon": ["Design"],
-    "responsive": ["FE", "Design"],
     # AI / Agent
     "agent": ["AI"],
     "chatbot": ["AI"],
@@ -188,10 +184,7 @@ KEYWORD_DOMAIN: dict[str, list[str]] = {
     "base": ["Architecture"],
     "docs": ["Quality"],
     "architect": ["Architecture"],
-    "skill": ["Tools"],
     "io": ["BE"],
-    "project-management": ["Management"],
-    "bussiness-analysis": ["Management"],
 }
 
 
@@ -365,7 +358,10 @@ def build_link(skill_name: str, skill_dir: Path) -> str:
 LABELS = {
     "vi": {
         "title": "Danh sách Skill theo Domain",
-        "total": "Tổng cộng **{rows}** skill khớp từ **{kws}** keyword trong `key-work.md`.",
+        "total": (
+            "Tổng cộng **{rows}** skill khớp từ "
+            "**{kws}** keyword trong `key-work.md`."
+        ),
         "keyword": "Keyword",
         "skill": "Tên skill",
         "domain": "Domain",
@@ -373,7 +369,10 @@ LABELS = {
     },
     "en": {
         "title": "Skill List by Domain",
-        "total": "Total **{rows}** skills matched from **{kws}** keywords in `key-work.md`.",
+        "total": (
+            "Total **{rows}** skills matched from "
+            "**{kws}** keywords in `key-work.md`."
+        ),
         "keyword": "Keyword",
         "skill": "Skill name",
         "domain": "Domain",
@@ -446,7 +445,9 @@ def main() -> None:
             current_domain = domain_primary
             out.append(f"\n## {current_domain}\n\n")
             out.append(
-                f"| {lbl['keyword']} | {lbl['skill']} | {lbl['domain']} | {lbl['summary']} |\n"
+                "| "
+                f"{lbl['keyword']} | {lbl['skill']} | "
+                f"{lbl['domain']} | {lbl['summary']} |\n"
             )
             out.append("|---|---|---|---|\n")
         cells = " | ".join(

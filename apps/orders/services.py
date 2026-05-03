@@ -86,7 +86,10 @@ class OrderService:
         order = Order.objects.select_for_update().get(id=order.id)
         if order.status != OrderStatus.PENDING:
             raise OrderInvalidState(
-                message="Khách hàng chỉ có thể hủy đơn của mình khi đơn đang ở trạng thái PENDING.",
+                message=(
+                    "Khách hàng chỉ có thể hủy đơn của mình "
+                    "khi đơn đang ở trạng thái PENDING."
+                ),
                 errors={
                     "status": ["Only PENDING orders can be cancelled by customer."]
                 },
@@ -102,7 +105,10 @@ class OrderService:
         order = Order.objects.select_for_update().get(id=order.id)
         if order.status not in {OrderStatus.PENDING, OrderStatus.CONFIRMED}:
             raise OrderInvalidState(
-                message="Admin chỉ có thể hủy đơn đang ở trạng thái PENDING hoặc CONFIRMED.",
+                message=(
+                    "Admin chỉ có thể hủy đơn đang ở trạng thái "
+                    "PENDING hoặc CONFIRMED."
+                ),
                 errors={
                     "status": [
                         "Only PENDING or CONFIRMED orders can be cancelled by admin."
@@ -131,7 +137,10 @@ class OrderService:
         order = Order.objects.select_for_update().get(id=order.id)
         if order.status != OrderStatus.CONFIRMED:
             raise OrderInvalidState(
-                message="Chỉ có thể chuyển đơn sang SHIPPED khi đơn đang ở trạng thái CONFIRMED.",
+                message=(
+                    "Chỉ có thể chuyển đơn sang SHIPPED khi đơn "
+                    "đang ở trạng thái CONFIRMED."
+                ),
                 errors={"status": ["Only CONFIRMED orders can be shipped."]},
             )
 
@@ -145,7 +154,10 @@ class OrderService:
         order = Order.objects.select_for_update().get(id=order.id)
         if order.status != OrderStatus.SHIPPED:
             raise OrderInvalidState(
-                message="Chỉ có thể chuyển đơn sang DELIVERED khi đơn đang ở trạng thái SHIPPED.",
+                message=(
+                    "Chỉ có thể chuyển đơn sang DELIVERED khi đơn "
+                    "đang ở trạng thái SHIPPED."
+                ),
                 errors={"status": ["Only SHIPPED orders can be delivered."]},
             )
 

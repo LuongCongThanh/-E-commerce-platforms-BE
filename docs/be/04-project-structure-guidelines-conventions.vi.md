@@ -365,7 +365,7 @@ router.register(r'categories', CategoryViewSet, basename='category')
 # .env.example
 SECRET_KEY=your-secret-key-here
 DEBUG=True
-DATABASE_URL=postgres://user:pass@localhost:5432/ecommerce
+DATABASE_URL=postgres://user:pass@localhost:5433/ecommerce
 ALLOWED_HOSTS=localhost,127.0.0.1
 
 # JWT

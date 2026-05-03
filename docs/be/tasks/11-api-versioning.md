@@ -34,7 +34,7 @@ Ensure the API can evolve over time without breaking existing Frontend integrati
 Use `NamespaceVersioning` or a custom versioning class if needed.
 
 ```python
-# config/settings.py
+# config/settings/base.py
 REST_FRAMEWORK = {
     'DEFAULT_VERSIONING_CLASS': 'rest_framework.versioning.URLPathVersioning',
     'DEFAULT_VERSION': 'v1',
