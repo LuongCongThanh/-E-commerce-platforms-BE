@@ -1,10 +1,10 @@
 """
-Công cụ tìm skill liên quan đến keyword trong docs-mvp/key-work.md.
+Công cụ tìm skill liên quan đến keyword trong docs/mvp/key-work.md.
 
 Cách chạy:
-    python docs-mvp/find_skills.py
+    python docs/mvp/find_skills.py
 
-Kết quả ghi vào: docs-mvp/define_all_skill.md
+Kết quả ghi vào: docs/mvp/define_all_skill.md
 """
 
 import re

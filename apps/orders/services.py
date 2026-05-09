@@ -1,3 +1,6 @@
+import logging
+
+from django.core.mail import send_mail
 from django.db import transaction
 from rest_framework.exceptions import ValidationError
 
@@ -6,11 +9,34 @@ from apps.catalog.models import ProductVariant
 from .exceptions import OrderInvalidState, OutOfStock
 from .models import Order, OrderItem, OrderStatus
 
+logger = logging.getLogger(__name__)
+
+
+def _send_order_confirmation_email(user_email, order_id, recipient_name, phone):
+    try:
+        send_mail(
+            subject=f"Đã nhận đơn hàng #{order_id}",
+            message=(
+                f"Xin chào {recipient_name},\n\n"
+                f"Chúng tôi đã nhận đơn hàng #{order_id} của bạn"
+                f" và đang chờ xác nhận.\n"
+                f"Chúng tôi sẽ liên hệ bạn qua SĐT {phone} sớm nhất.\n\n"
+                "Cảm ơn bạn đã đặt hàng!"
+            ),
+            from_email=None,
+            recipient_list=[user_email],
+            fail_silently=False,
+        )
+    except Exception:
+        logger.exception(
+            "Failed to send order confirmation email for order %s", order_id
+        )
+
 
 class OrderService:
     @staticmethod
     @transaction.atomic
-    def create_order(user, items_payload):
+    def create_order(user, items_payload, shipping_address):
         if not items_payload:
             raise ValidationError("Order must include at least one item.")
 
@@ -28,7 +54,11 @@ class OrderService:
         if len(currencies) > 1:
             raise ValidationError("A single order must use one currency.")
 
-        order = Order.objects.create(user=user, currency=currencies.pop())
+        order = Order.objects.create(
+            user=user,
+            currency=currencies.pop(),
+            shipping_address=shipping_address,
+        )
         order_items = []
         for item in items_payload:
             variant = variants_by_id[item["product_variant_id"]]
@@ -42,6 +72,16 @@ class OrderService:
                 )
             )
         OrderItem.objects.bulk_create(order_items)
+
+        transaction.on_commit(
+            lambda: _send_order_confirmation_email(
+                user_email=user.email,
+                order_id=order.id,
+                recipient_name=shipping_address.get("recipient_name"),
+                phone=shipping_address.get("phone"),
+            )
+        )
+
         return order
 
     @staticmethod

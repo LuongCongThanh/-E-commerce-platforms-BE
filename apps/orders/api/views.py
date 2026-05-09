@@ -30,6 +30,7 @@ class OrderListCreateView(generics.ListCreateAPIView):
         order = OrderService.create_order(
             user=request.user,
             items_payload=serializer.validated_data["items"],
+            shipping_address=serializer.validated_data["shipping_address"],
         )
         data = OrderSerializer(order).data
         return Response(data, status=status.HTTP_201_CREATED)

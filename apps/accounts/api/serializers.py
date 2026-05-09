@@ -1,5 +1,8 @@
 from django.contrib.auth import get_user_model
 from django.contrib.auth.password_validation import validate_password
+from django.contrib.auth.tokens import default_token_generator
+from django.utils.encoding import force_str
+from django.utils.http import urlsafe_base64_decode
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
@@ -61,3 +64,30 @@ class LoginSerializer(TokenObtainPairSerializer):
             "refresh": data["refresh"],
             "user": UserSerializer(self.user).data,
         }
+
+
+class PasswordResetSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+
+
+class PasswordResetConfirmSerializer(serializers.Serializer):
+    uid = serializers.CharField()
+    token = serializers.CharField()
+    new_password = serializers.CharField(validators=[validate_password])
+
+    def validate(self, attrs):
+        try:
+            uid = force_str(urlsafe_base64_decode(attrs["uid"]))
+            user = User.objects.get(pk=uid)
+        except (User.DoesNotExist, ValueError, TypeError):
+            raise serializers.ValidationError(
+                {"uid": ["Link đặt lại mật khẩu không hợp lệ."]}
+            )
+
+        if not default_token_generator.check_token(user, attrs["token"]):
+            raise serializers.ValidationError(
+                {"token": ["Token không hợp lệ hoặc đã hết hạn."]}
+            )
+
+        attrs["user"] = user
+        return attrs

@@ -27,6 +27,7 @@ class Order(BaseModel):
         db_index=True,
     )
     currency = models.CharField(max_length=3, default="VND")
+    shipping_address = models.JSONField(default=dict)
 
     class Meta:
         ordering = ["-created_at"]

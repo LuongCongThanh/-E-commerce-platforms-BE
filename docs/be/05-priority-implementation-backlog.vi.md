@@ -1,7 +1,7 @@
 # 05. Priority Implementation Backlog — Backend (VI)
 
-Last updated: 2026-04-25
-Source of truth: `01-04` docs in this set, `docs/05-priority-implementation-backlog.vi.md` (FE sync)
+Last updated: 2026-05-09
+Source of truth: `docs/be/01-mvp-overview.vi.md`, `docs/be/02-roadmap-and-execution-plan.vi.md`, `docs/be/03-technical-stack-skills-and-versions.vi.md`, `docs/be/04-project-structure-guidelines-conventions.vi.md`, `CONTEXT.md`, `docs/adr/0001-order-inventory-lifecycle.md`
 Owner: BE Lead + BA Lead + PM
 
 ## TOC
@@ -67,7 +67,7 @@ Không bao gồm:
 | P1-01 | Auth API                | Register/login/logout/refresh/password-reset endpoints    | P0-\*        | BE         | JWT flow hoạt động, token TTL đúng, blacklist works     | BE: auth-implementation-patterns, backend-security-coder | FE P1-02 (auth)       |
 | P1-02 | Catalog API             | Products list/detail + categories + search/filter         | P0-\*        | BE         | Paginated response đúng shape, slug unique, images đúng | BE: api-design-principles, database-design               | FE P1-01 (storefront) |
 | P1-03 | Swagger UI trên staging | `/api/docs/` tự động sinh từ code, staging URL public     | P1-01, P1-02 | BE         | FE có thể test endpoint qua Swagger UI                  | BE: backend-dev-guidelines                               | FE bắt đầu tích hợp   |
-| P1-04 | Order API (COD)         | Create order + stock deduction atomic + order list/detail | P1-01, P1-02 | BE         | COD order tạo thành công, race condition không xảy ra   | BE: backend-development-feature-development              | FE P1-04 (checkout)   |
+| P1-04 | Order API (COD)         | Create `PENDING` order + order list/detail + admin confirm inventory commit | P1-01, P1-02 | BE         | COD order tạo thành công, confirm flow không oversell   | BE: backend-development-feature-development              | FE P1-04 (checkout)   |
 | P1-05 | Email xác nhận đơn      | HTML email template gửi khi order created                 | P1-04        | BE         | Email gửi thật qua SMTP, nội dung đúng đơn hàng         | BE: backend-dev-guidelines                               | FE P1-05 (order)      |
 | P1-06 | Seed data staging       | 5 categories, 20+ products, 3 variants mỗi product        | P1-02        | BE         | FE có data để test catalog, search, filter hoạt động    | BE: database-design                                      | FE bắt đầu test UI    |
 
@@ -87,7 +87,7 @@ Không bao gồm:
 | ID    | Objective                    | Output                                           | Dependencies | Owner role | Acceptance checks                                  | Skill mapping                               |
 | ----- | ---------------------------- | ------------------------------------------------ | ------------ | ---------- | -------------------------------------------------- | ------------------------------------------- |
 | P3-01 | Account API nâng cao         | Profile update, address book CRUD                | P2-\*        | BE         | FE có thể CRUD địa chỉ giao hàng                   | BE: backend-development-feature-development |
-| P3-02 | Order cancellation API       | `POST /api/orders/{id}/cancel/` + rollback stock | P2-\*        | BE         | Cancel thành công, tồn kho rollback đúng           | BE: backend-dev-guidelines                  |
+| P3-02 | Order self-service extensions | Cancel reason, reorder flow, richer order timeline | P2-\*        | BE         | Tính năng bổ sung không phá rule lifecycle MVP      | BE: backend-dev-guidelines                  |
 | P3-03 | Payment gateway (VNPay/Momo) | Tích hợp payment + webhook xử lý                 | P2-\*        | BE         | Payment flow hoạt động end-to-end sandbox          | BE: backend-architect                       |
 | P3-04 | Celery + Redis async tasks   | Email gửi async, không block request             | P2-\*        | BE         | Email gửi được sau khi response trả về             | DevOps: docker-expert                       |
 | P3-05 | Advanced admin dashboard     | Doanh thu, đơn hôm nay, sản phẩm hot, biểu đồ    | P2-\*        | BE         | Admin thấy được KPI cơ bản mà không cần SQL        | BE: backend-development-feature-development |
@@ -122,6 +122,7 @@ Không bao gồm:
 - WebSocket realtime — không cần ở MVP.
 - Kubernetes / advanced orchestration — overkill.
 - Multi-vendor marketplace — hoàn toàn ngoài MVP.
+- Re-adding `/api/v1/...` before a new ADR/doc decision — not allowed.
 
 ### Delivery readiness checklist (per priority)
 

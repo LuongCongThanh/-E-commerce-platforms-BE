@@ -1,6 +1,6 @@
 # 03. Technical Stack, Skills And Versions — Backend (VI)
 
-Last updated: 2026-05-02
+Last updated: 2026-05-09
 Source of truth: `pyproject.toml`, `Dockerfile`, `uv.lock`, engineering conventions in this doc set
 Owner: BE Lead + Tech Lead
 
@@ -15,14 +15,14 @@ Owner: BE Lead + Tech Lead
 
 ## Summary Table
 
-| Item           | Value                                              |
-| -------------- | -------------------------------------------------- |
-| Framework core | Django 5.1 + Django REST Framework 3.15+           |
-| Auth           | djangorestframework-simplejwt 5.x                  |
-| Database       | PostgreSQL 16 (Neon managed)                       |
-| API Docs       | drf-spectacular 0.27+                              |
-| Testing        | pytest-django 4.x + factory-boy 3.x                |
-| Monitoring     | Optional for MVP, enable when configured           |
+| Item           | Value                                                         |
+| -------------- | ------------------------------------------------------------- |
+| Framework core | Django `>=5.0.4` + Django REST Framework `>=3.15.1`           |
+| Auth           | `djangorestframework-simplejwt >=5.3.1`                       |
+| Database       | PostgreSQL qua `env.db()`; local đang chạy theo `localhost:5433` |
+| API Docs       | `drf-spectacular >=0.27.2`                                    |
+| Testing        | `pre-commit` đang có thật; `pytest`/`factory-boy` vẫn là planned |
+| Monitoring     | Optional for MVP, chỉ coi là active khi env/config đã tồn tại |
 
 ## Purpose
 
@@ -64,12 +64,12 @@ Không bao gồm:
 | Social auth (phase2) | django-allauth (defer)              | Google/Facebook OAuth — chưa cần ở MVP                             |
 | API Documentation    | drf-spectacular 0.27+               | Auto-generate OpenAPI 3 schema từ code, Swagger UI + ReDoc         |
 | Database ORM         | Django ORM (built-in)               | Type-safe queries, migration system, admin integration             |
-| Database             | PostgreSQL 16 (Neon)                | Managed, free tier đủ dùng MVP, dashboard trực quan                |
+| Database             | PostgreSQL (env-driven)             | Repo runtime đọc từ `env.db()`, local/dev và hosted có thể khác nhau |
 | Media storage        | Cloudinary integration (optional)   | Dùng khi cần upload/serve ảnh production                           |
 | Email                | Django EmailBackend (SMTP)          | Gmail/Mailgun free — đủ cho transactional email MVP                |
 | Task queue           | Sync in-request (MVP)               | Celery defer sang Phase 2 — MVP sync OK                            |
 | Caching              | None (MVP)                          | Redis/Memcached defer sang Phase 2                                 |
-| Testing              | pytest-django 4.x + factory-boy 3.x | Fast, Django-native, fixture tốt với Factory Boy                   |
+| Testing              | Django checks + pre-commit hiện tại; pytest/factory-boy planned | Phản ánh đúng repo hiện có, vẫn mở đường cho test stack Phase 2    |
 | Code quality         | ruff + black + isort                | Nhanh hơn flake8+pylint, format nhất quán                          |
 | Monitoring           | Sentry integration (optional)       | Bật khi môi trường staging/production đã sẵn sàng                  |
 | Containerization     | Docker + Docker Compose             | 1-lệnh chạy toàn bộ stack local                                    |
@@ -94,14 +94,15 @@ Không bao gồm:
 
 #### Dev dependencies
 
-| Package              | Version |
-| -------------------- | ------- |
-| pytest / pytest-django | Planned quality tooling         |
-| factory-boy            | Planned test fixture tooling    |
-| pytest-cov             | Planned coverage tooling        |
-| ruff                   | Configured in `pyproject.toml`  |
-| black                  | Configured in `pyproject.toml`  |
-| django-debug-toolbar   | Optional in development         |
+| Package                | Version / Status                    |
+| ---------------------- | ----------------------------------- |
+| pre-commit             | `>=4.2.0` trong `[dependency-groups.dev]` |
+| pytest / pytest-django | Planned quality tooling             |
+| factory-boy            | Planned test fixture tooling        |
+| pytest-cov             | Planned coverage tooling            |
+| ruff                   | Configured in `pyproject.toml`      |
+| black                  | Configured in `pyproject.toml`      |
+| django-debug-toolbar   | Optional in development             |
 
 ### Skill matrix focused on BE và QA
 
@@ -152,17 +153,19 @@ Nice-to-have:
 
 Gate rules before merge:
 
+- `uv run pre-commit run --all-files` should pass khi hook suite đã được cài.
 - `ruff check .` must pass (no lint errors).
 - `black --check .` should pass nếu formatter đã được cài trong workflow.
-- `pytest --cov=. --cov-report=term-missing` should pass khi test suite/coverage pipeline đã được bật.
-- Migration conflict check: `python manage.py migrate --check` must pass.
+- `pytest --cov=. --cov-report=term-missing` only becomes mandatory after the pytest stack is actually added to repo tooling.
+- `python manage.py check` là smoke check nhanh bắt buộc sau thay đổi settings/runtime lớn.
+- Migration conflict check: `python manage.py migrate --check` must pass khi DB/migration workflow đã sẵn.
 - Không có hardcoded secret trong code (ruff rule hoặc pre-commit hook).
 
 Gate rules before release:
 
 - Regression test cho auth + catalog + order pass.
 - Không còn lỗi severity cao trong Sentry staging.
-- `python manage.py check --deploy` pass.
+- `python manage.py check --deploy` pass khi production settings/env đã sẵn.
 - Backup database verify.
 - Health check endpoint `GET /api/health/` trả `200 OK`.
 
@@ -222,7 +225,7 @@ Open risks:
 
 - Package drift khi nâng cấp không cập nhật docs.
 - Team bỏ qua quality gate khi deadline gấp.
-- psycopg2-binary có thể cần psycopg2 thuần trên Railway (build khác).
+- Một số mục test/monitoring trong doc vẫn là planned, chưa phải repo capability mặc định.
 
 Next actions:
 

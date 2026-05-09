@@ -2,8 +2,11 @@ from django.contrib import admin
 from django.urls import include, path
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 
+from apps.core.views import HealthCheckView
+
 urlpatterns = [
     path("secret-panel/", admin.site.urls),
+    path("api/health/", HealthCheckView.as_view(), name="health_check"),
     # API Documentation
     path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
     path(
